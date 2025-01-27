@@ -1,0 +1,100 @@
+#include <iostream>
+#include <string>
+#include <map>
+#include <functional>
+#include <chrono>
+#include <thread>
+#include <mutex>
+#include <ctime>
+
+using namespace std;
+
+class TaskScheduler {
+private:
+    map<string, thread> tasks;
+    mutex task_mutex;
+
+    static void runTask(const string& task_id, const string& task_message, time_t run_time) {
+        this_thread::sleep_until(chrono::system_clock::from_time_t(run_time));
+        cout << "Task ID: " << task_id << ", Message: " << task_message << ", Time: " << time(0) << endl;
+    }
+
+public:
+    bool scheduleTask(const string& task_id, const string& message, const string& time) {
+        lock_guard<mutex> lock(task_mutex);
+        if (tasks.find(task_id) != tasks.end()) {
+            cerr << "Task ID already exists." << endl;
+            return false;
+        }
+
+        struct tm tm = {};
+        strptime(time.c_str(), "%Y-%m-%d %H:%M:%S", &tm);
+        time_t run_time = mktime(&tm);
+
+        tasks[task_id] = thread(&TaskScheduler::runTask, task_id, message, run_time);
+        tasks[task_id].detach();
+
+        cout << "Task scheduled successfully: " << task_id << endl;
+        return true;
+    }
+
+    void listTasks() {
+        lock_guard<mutex> lock(task_mutex);
+        for (const auto& task : tasks) {
+            cout << "Task ID: " << task.first << endl;
+        }
+    }
+
+    bool deleteTask(const string& task_id) {
+        lock_guard<mutex> lock(task_mutex);
+        if (tasks.find(task_id) == tasks.end()) {
+            cerr << "Task ID not found." << endl;
+            return false;
+        }
+
+        tasks.erase(task_id);
+        cout << "Task deleted successfully: " << task_id << endl;
+        return true;
+    }
+};
+
+int main() {
+    TaskScheduler scheduler;
+
+    while (true) {
+        cout << "\nTask Scheduler Menu:" << endl;
+        cout << "1. Schedule Task" << endl;
+        cout << "2. List Tasks" << endl;
+        cout << "3. Delete Task" << endl;
+        cout << "4. Exit" << endl;
+        cout << "Enter your choice: ";
+
+        int choice;
+        cin >> choice;
+
+        if (choice == 1) {
+            string task_id, message, time;
+            cout << "Enter Task ID: ";
+            cin >> task_id;
+            cin.ignore();
+            cout << "Enter Message: ";
+            getline(cin, message);
+            cout << "Enter Time (YYYY-MM-DD HH:MM:SS): ";
+            getline(cin, time);
+            scheduler.scheduleTask(task_id, message, time);
+        } else if (choice == 2) {
+            scheduler.listTasks();
+        } else if (choice == 3) {
+            string task_id;
+            cout << "Enter Task ID: ";
+            cin >> task_id;
+            scheduler.deleteTask(task_id);
+        } else if (choice == 4) {
+            break;
+        } else {
+            cout << "Invalid choice. Please try again." << endl;
+        }
+    }
+
+    return 0;
+}
