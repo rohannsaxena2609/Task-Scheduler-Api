@@ -69,16 +69,44 @@ curl -X POST -H "Content-Type: application/json" -d '{
   "message": "Hello World",
   "time": "2025-01-27 15:30:00"
 }' http://127.0.0.1:5000/schedule
-Retrieve tasks:
 
-bash
-Copy
-Edit
-curl -X GET http://127.0.0.1:5000/tasks
-Delete a task:
 
-bash
-Copy
-Edit
-curl -X DELETE http://127.0.0.1:5000/delete/task123
+# Key Features:
+
+# Task Scheduling:
+Users can define a unique task ID, a custom message, and a specific execution time in the YYYY-MM-DD HH:MM:SS format. The application will ensure the task executes at the designated time.
+
+# Concurrent Execution:
+Tasks are managed using C++ threads, allowing the scheduler to handle multiple tasks simultaneously.
+
+# Task Management:
+
+View all scheduled tasks with their unique IDs.
+Delete tasks by providing the corresponding task ID.
+Thread Safety:
+The application employs mutexes to prevent race conditions during task addition, deletion, or retrieval.
+
+# Intuitive Menu:
+A simple interactive menu guides users to perform operations like scheduling, listing, and deleting tasks.
+
+# How It Works:
+
+Task Scheduling:
+When a user schedules a task, it creates a thread that sleeps until the specified time, then executes the task.
+
+Persistent Management:
+Tasks are stored in a std::map, keyed by their unique ID for quick lookup and management.
+
+Multi-threading:
+Each task runs in a detached thread, ensuring the application remains responsive.
+
+Use Case Scenarios:
+Event Reminder:
+Schedule reminders for meetings, deadlines, or any other event by specifying a message and a time.
+
+Automation:
+Execute tasks like triggering alerts or running scripts at specific times.
+
+Learning Resource:
+Demonstrates practical usage of C++ features like multithreading, synchronization (mutex), and time handling.
 
